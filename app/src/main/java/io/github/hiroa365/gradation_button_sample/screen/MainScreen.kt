@@ -45,7 +45,9 @@ fun MainScreen(
 
     MainScreen(
         buttonList = state.buttonList,
-        onPush = { viewModel.push(it) }
+        onPush = { viewModel.push(it) },
+        cellWidth = state.cellWidth,
+        cellHeight = state.cellHeight,
     )
 }
 
@@ -55,7 +57,9 @@ fun MainScreen(
 @Composable
 fun MainScreen(
     buttonList: List<ButtonStyle>,
-    onPush: (Long) -> Unit
+    onPush: (Long) -> Unit,
+    cellWidth: Int,
+    cellHeight: Int,
 ) {
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize(),
@@ -64,14 +68,14 @@ fun MainScreen(
         val screenHeight = with(LocalDensity.current) { constraints.maxHeight.toDp() }
 
         LazyVerticalGrid(
-            cells = GridCells.Fixed(5),
+            cells = GridCells.Fixed(cellWidth),
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
         ) {
             items(items = buttonList) { style ->
                 MultiButton(
                     style = style,
-                    height = screenHeight / 10,
+                    height = screenHeight / cellHeight,
                     onPush = onPush,
                 )
             }
@@ -135,22 +139,33 @@ fun MainScreenPreviw() {
                 counter = 0,
             )
         ),
-        onPush = { }
+        onPush = { },
+        cellWidth = 4,
+        cellHeight = 5,
     )
 }
 
+
+object Config {
+    const val cellWidth: Int = 4
+    const val cellHeight: Int = 5
+
+    const val cellNumber = cellWidth * cellHeight
+}
 
 @HiltViewModel
 class MainScreenViewModel @Inject constructor(
     private val createBrushUseCase: CreateBrushUseCase
 ) : ViewModel() {
     private val initValue = MainScreenState(
-        buttonList = MutableList<ButtonStyle>(50) {
+        buttonList = MutableList<ButtonStyle>(Config.cellNumber) {
             ButtonStyle(
                 brush = createBrushUseCase(),
                 counter = it + 1,
             )
-        }.apply { shuffle() }
+        }.apply { shuffle() },
+        cellHeight = Config.cellHeight,
+        cellWidth = Config.cellWidth,
     )
 
     /**
@@ -204,6 +219,8 @@ class MainScreenViewModel @Inject constructor(
 data class MainScreenState(
     val toggle: Boolean = true,
     val buttonList: MutableList<ButtonStyle>,
+    val cellWidth: Int,
+    val cellHeight: Int,
 )
 
 data class ButtonStyle(
