@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
+import androidx.compose.material.TopAppBar
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,7 +28,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.hiroa365.gradation_button_sample.data.repository.GradationColorRepository
+import io.github.hiroa365.gradation_button_sample.data.repository.GradationColorRepositoryImpl
 import io.github.hiroa365.gradation_button_sample.domain.usecase.CreateBrushUseCase
+import io.github.hiroa365.gradation_button_sample.domain.usecase.CreateBrushUseCaseImpl
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -56,6 +60,25 @@ fun MainScreen(
  */
 @Composable
 fun MainScreen(
+    buttonList: List<ButtonStyle>,
+    onPush: (Long) -> Unit,
+    cellWidth: Int,
+    cellHeight: Int,
+) {
+    Scaffold(
+        topBar = {},
+        content = {
+            MainScreenContent(buttonList, onPush, cellWidth, cellHeight)
+        },
+        bottomBar = {},
+    )
+}
+
+/**
+ * state less
+ */
+@Composable
+fun MainScreenContent(
     buttonList: List<ButtonStyle>,
     onPush: (Long) -> Unit,
     cellWidth: Int,
@@ -106,6 +129,14 @@ fun MultiButton(
 
 }
 
+@Composable
+fun MainTopBar() {
+    TopAppBar(
+        title = {},
+        actions = {},
+    )
+}
+
 
 /**
  * Ripple無し clickable
@@ -131,14 +162,12 @@ fun Modifier.noRippleClickable(
 @Composable
 fun MainScreenPreviw() {
     MainScreen(
-        buttonList = listOf(
+        buttonList = MutableList<ButtonStyle>(Config.cellNumber) {
             ButtonStyle(
-                brush = Brush.radialGradient(
-                    listOf(Color.Red, Color.Yellow, Color.White)
-                ),
-                counter = 0,
+                brush = CreateBrushUseCaseImpl(GradationColorRepositoryImpl()).invoke(),
+                counter = it + 1,
             )
-        ),
+        }.apply { shuffle() },
         onPush = { },
         cellWidth = 4,
         cellHeight = 5,
