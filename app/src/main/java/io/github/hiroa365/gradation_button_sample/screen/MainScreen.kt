@@ -9,16 +9,19 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.GridCells
 import androidx.compose.foundation.lazy.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -28,6 +31,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.hiroa365.gradation_button_sample.R
 import io.github.hiroa365.gradation_button_sample.data.repository.GradationColorRepository
 import io.github.hiroa365.gradation_button_sample.data.repository.GradationColorRepositoryImpl
 import io.github.hiroa365.gradation_button_sample.domain.usecase.CreateBrushUseCase
@@ -65,12 +69,20 @@ fun MainScreen(
     cellWidth: Int,
     cellHeight: Int,
 ) {
+    val screenHeight_a = LocalConfiguration.current.screenHeightDp
+    val screenWidth_a = LocalConfiguration.current.screenWidthDp
+
     Scaffold(
-        topBar = {},
+        topBar = {
+            MainTopBar()
+        },
         content = {
             MainScreenContent(buttonList, onPush, cellWidth, cellHeight)
         },
-        bottomBar = {},
+        bottomBar = {
+            //ボトムバーはコンテンツが裏に隠れるので止める
+            //MainBottomBar()
+        },
     )
 }
 
@@ -92,7 +104,7 @@ fun MainScreenContent(
 
         LazyVerticalGrid(
             cells = GridCells.Fixed(cellWidth),
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.Center,
         ) {
             items(items = buttonList) { style ->
@@ -133,10 +145,47 @@ fun MultiButton(
 fun MainTopBar() {
     TopAppBar(
         title = {},
-        actions = {},
+        navigationIcon = {
+//            IconButton(onClick = { /*TODO*/ }) {
+//                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "")
+//            }
+        },
+        actions = {
+            //設定
+            IconButton(onClick = { /*TODO*/ }) {
+                Icon(imageVector = Icons.Default.Settings, contentDescription = "")
+            }
+            //リトライ
+            IconButton(onClick = { /*TODO*/ }) {
+                Icon(painterResource(id = R.drawable.ic_baseline_replay_24), "Hint")
+            }
+            //ヘルプ
+            IconButton(onClick = { /*TODO*/ }) {
+                Icon(painterResource(id = R.drawable.ic_baseline_help_24), "Hint")
+            }
+        },
+        backgroundColor = Color.White,
     )
 }
 
+
+//@Composable
+//fun MainBottomBar() {
+//    BottomAppBar(
+////            modifier = Modifier.height(56.dp),
+//        backgroundColor = Color.White,
+//    ) {
+//        IconButton(onClick = { /*TODO*/ }) {
+//            Icon(imageVector = Icons.Default.Settings, contentDescription = "")
+//        }
+//        IconButton(onClick = { /*TODO*/ }) {
+//            Icon(imageVector = Icons.Default.Settings, contentDescription = "")
+//        }
+//        IconButton(onClick = { /*TODO*/ }) {
+//            Icon(imageVector = Icons.Default.Settings, contentDescription = "")
+//        }
+//    }
+//}
 
 /**
  * Ripple無し clickable
@@ -186,16 +235,18 @@ object Config {
 class MainScreenViewModel @Inject constructor(
     private val createBrushUseCase: CreateBrushUseCase
 ) : ViewModel() {
-    private val initValue = MainScreenState(
-        buttonList = MutableList<ButtonStyle>(Config.cellNumber) {
-            ButtonStyle(
-                brush = createBrushUseCase(),
-                counter = it + 1,
-            )
-        }.apply { shuffle() },
-        cellHeight = Config.cellHeight,
-        cellWidth = Config.cellWidth,
-    )
+
+    private val initValue
+        get() = MainScreenState(
+            buttonList = MutableList<ButtonStyle>(Config.cellNumber) {
+                ButtonStyle(
+                    brush = createBrushUseCase(),
+                    counter = it + 1,
+                )
+            }.apply { shuffle() },
+            cellHeight = Config.cellHeight,
+            cellWidth = Config.cellWidth,
+        )
 
     /**
      * StateはStateFlowで保持
