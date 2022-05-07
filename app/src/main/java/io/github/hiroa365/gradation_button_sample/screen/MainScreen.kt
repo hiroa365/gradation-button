@@ -49,11 +49,11 @@ fun MainScreen(
 ) {
     val state by viewModel.state.collectAsState()
 
-    val systemUiController = rememberSystemUiController()
-    SideEffect {
-        Log.i("MainScreen", "hideStatusBars")
-        systemUiController.isSystemBarsVisible = false // Status & Navigation bars
-    }
+//    val systemUiController = rememberSystemUiController()
+//    SideEffect {
+//        Log.i("MainScreen", "hideStatusBars")
+//        systemUiController.isSystemBarsVisible = false // Status & Navigation bars
+//    }
 
     MainScreen(
         buttonList = state.buttonList,
@@ -75,8 +75,8 @@ fun MainScreen(
     cellWidth: Int,
     cellHeight: Int,
 ) {
-    val screenHeight_a = LocalConfiguration.current.screenHeightDp
-    val screenWidth_a = LocalConfiguration.current.screenWidthDp
+//    val screenHeight_a = LocalConfiguration.current.screenHeightDp
+//    val screenWidth_a = LocalConfiguration.current.screenWidthDp
 
     Scaffold(
         topBar = {
