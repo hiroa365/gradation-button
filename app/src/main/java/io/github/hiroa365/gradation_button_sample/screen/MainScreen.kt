@@ -2,8 +2,8 @@
 
 package io.github.hiroa365.gradation_button_sample.screen
 
+import android.util.Log
 import androidx.compose.foundation.*
-import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.GridCells
@@ -11,7 +11,6 @@ import androidx.compose.foundation.lazy.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,14 +24,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.hiroa365.gradation_button_sample.R
-import io.github.hiroa365.gradation_button_sample.data.repository.GradationColorRepository
 import io.github.hiroa365.gradation_button_sample.data.repository.GradationColorRepositoryImpl
 import io.github.hiroa365.gradation_button_sample.domain.usecase.CreateBrushUseCase
 import io.github.hiroa365.gradation_button_sample.domain.usecase.CreateBrushUseCaseImpl
@@ -51,9 +49,16 @@ fun MainScreen(
 ) {
     val state by viewModel.state.collectAsState()
 
+    val systemUiController = rememberSystemUiController()
+    SideEffect {
+        Log.i("MainScreen", "hideStatusBars")
+        systemUiController.isSystemBarsVisible = false // Status & Navigation bars
+    }
+
     MainScreen(
         buttonList = state.buttonList,
-        onPush = { viewModel.push(it) },
+        onClickPush = { viewModel.push(it) },
+        onClickRetry = { viewModel.retry() },
         cellWidth = state.cellWidth,
         cellHeight = state.cellHeight,
     )
@@ -65,7 +70,8 @@ fun MainScreen(
 @Composable
 fun MainScreen(
     buttonList: List<ButtonStyle>,
-    onPush: (Long) -> Unit,
+    onClickPush: (Long) -> Unit = {},
+    onClickRetry: () -> Unit = {},
     cellWidth: Int,
     cellHeight: Int,
 ) {
@@ -74,10 +80,10 @@ fun MainScreen(
 
     Scaffold(
         topBar = {
-            MainTopBar()
+            MainTopBar(onClickRetry = onClickRetry)
         },
         content = {
-            MainScreenContent(buttonList, onPush, cellWidth, cellHeight)
+            MainScreenContent(buttonList, onClickPush, cellWidth, cellHeight)
         },
         bottomBar = {
             //ボトムバーはコンテンツが裏に隠れるので止める
@@ -92,7 +98,7 @@ fun MainScreen(
 @Composable
 fun MainScreenContent(
     buttonList: List<ButtonStyle>,
-    onPush: (Long) -> Unit,
+    onClickPush: (Long) -> Unit,
     cellWidth: Int,
     cellHeight: Int,
 ) {
@@ -111,7 +117,7 @@ fun MainScreenContent(
                 MultiButton(
                     style = style,
                     height = screenHeight / cellHeight,
-                    onPush = onPush,
+                    onClickPush = onClickPush,
                 )
             }
         }
@@ -122,14 +128,14 @@ fun MainScreenContent(
 fun MultiButton(
     style: ButtonStyle,
     height: Dp,
-    onPush: (Long) -> Unit,
+    onClickPush: (Long) -> Unit,
 ) {
     Box(
         modifier = Modifier
             .height(height = height)
 //            .fillMaxSize()
             .background(brush = style.brush)
-            .noRippleClickable { onPush(style.id) },
+            .noRippleClickable { onClickPush(style.id) },
         contentAlignment = Alignment.Center,
     ) {
         Text(
@@ -142,7 +148,9 @@ fun MultiButton(
 }
 
 @Composable
-fun MainTopBar() {
+fun MainTopBar(
+    onClickRetry: () -> Unit,
+) {
     TopAppBar(
         title = {},
         navigationIcon = {
@@ -151,18 +159,18 @@ fun MainTopBar() {
 //            }
         },
         actions = {
-            //設定
-            IconButton(onClick = { /*TODO*/ }) {
-                Icon(imageVector = Icons.Default.Settings, contentDescription = "")
-            }
+//            //設定
+//            IconButton(onClick = { /*TODO*/ }) {
+//                Icon(imageVector = Icons.Default.Settings, contentDescription = "")
+//            }
             //リトライ
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(onClick = { onClickRetry() }) {
                 Icon(painterResource(id = R.drawable.ic_baseline_replay_24), "Hint")
             }
-            //ヘルプ
-            IconButton(onClick = { /*TODO*/ }) {
-                Icon(painterResource(id = R.drawable.ic_baseline_help_24), "Hint")
-            }
+//            //ヘルプ
+//            IconButton(onClick = { /*TODO*/ }) {
+//                Icon(painterResource(id = R.drawable.ic_baseline_help_24), "Hint")
+//            }
         },
         backgroundColor = Color.White,
     )
@@ -209,7 +217,7 @@ fun Modifier.noRippleClickable(
 
 @Preview
 @Composable
-fun MainScreenPreviw() {
+fun MainScreenPreview() {
     MainScreen(
         buttonList = MutableList<ButtonStyle>(Config.cellNumber) {
             ButtonStyle(
@@ -217,7 +225,6 @@ fun MainScreenPreviw() {
                 counter = it + 1,
             )
         }.apply { shuffle() },
-        onPush = { },
         cellWidth = 4,
         cellHeight = 5,
     )
@@ -236,14 +243,17 @@ class MainScreenViewModel @Inject constructor(
     private val createBrushUseCase: CreateBrushUseCase
 ) : ViewModel() {
 
+    private val initButtonList
+        get() = MutableList<ButtonStyle>(Config.cellNumber) {
+            ButtonStyle(
+                brush = createBrushUseCase(),
+                counter = it + 1,
+            )
+        }.apply { shuffle() }
+
     private val initValue
         get() = MainScreenState(
-            buttonList = MutableList<ButtonStyle>(Config.cellNumber) {
-                ButtonStyle(
-                    brush = createBrushUseCase(),
-                    counter = it + 1,
-                )
-            }.apply { shuffle() },
+            buttonList = initButtonList,
             cellHeight = Config.cellHeight,
             cellWidth = Config.cellWidth,
         )
@@ -276,10 +286,18 @@ class MainScreenViewModel @Inject constructor(
             _state.value.buttonList[index] =
                 oldStyle.copy(brush = createBrushUseCase(), counter = maxCounter + 1)
 
-            _state.value = _state.value.copy(
-                toggle = !_state.value.toggle,
-            )
+            _state.value = _state.value.copy(toggle = !_state.value.toggle)
         }
+    }
+
+    /**
+     * リセット
+     */
+    fun retry() {
+        _state.value = _state.value.copy(
+            toggle = !_state.value.toggle,
+            buttonList = initButtonList,
+        )
     }
 
     /**

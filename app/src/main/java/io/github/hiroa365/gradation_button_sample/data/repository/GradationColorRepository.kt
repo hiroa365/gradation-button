@@ -73,8 +73,8 @@ class GradationColorRepositoryImpl @Inject constructor() : GradationColorReposit
 
 
     private val alphaList = listOf(
-        1.0f,   //100%
-        0.9f,   //90%
+//        1.0f,   //100%
+//        0.9f,   //90%
         0.8f,   //80%
         0.7f,   //70%
         0.6f,   //60%
