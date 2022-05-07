@@ -32,6 +32,7 @@ import io.github.hiroa365.gradation_button_sample.R
 import io.github.hiroa365.gradation_button_sample.data.repository.GradationColorRepositoryImpl
 import io.github.hiroa365.gradation_button_sample.domain.usecase.CreateBrushUseCase
 import io.github.hiroa365.gradation_button_sample.domain.usecase.CreateBrushUseCaseImpl
+import io.github.hiroa365.gradation_button_sample.domain.usecase.SpeechNumber
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -285,7 +286,8 @@ object Config {
 
 @HiltViewModel
 class MainScreenViewModel @Inject constructor(
-    private val createBrushUseCase: CreateBrushUseCase
+    private val createBrushUseCase: CreateBrushUseCase,
+    private val speechNumber: SpeechNumber,
 ) : ViewModel() {
 
     private val initButtonList
@@ -319,6 +321,8 @@ class MainScreenViewModel @Inject constructor(
             val index = _state.value.buttonList.indexOfFirst { it.id == id }
             //古いスタイルの取得
             val oldStyle = _state.value.buttonList[index]
+
+            speechNumber(oldStyle.counter.toString())
 
             //最小ボタンのチェック
             val minStyle = _state.value.buttonList.minByOrNull { it.counter }
