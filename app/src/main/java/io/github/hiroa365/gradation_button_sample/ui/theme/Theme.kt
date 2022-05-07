@@ -1,10 +1,14 @@
 package io.github.hiroa365.gradation_button_sample.ui.theme
 
+import android.util.Log
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 private val DarkColorPalette = darkColors(
     primary = Purple200,
@@ -36,6 +40,14 @@ fun GradationbuttonsampleTheme(
         DarkColorPalette
     } else {
         LightColorPalette
+    }
+
+    val systemUiController = rememberSystemUiController()
+    SideEffect {
+        Log.i("MainScreen", "hide StatusBars")
+        systemUiController.isStatusBarVisible = false // Status bars
+        systemUiController.isNavigationBarVisible = false // Navigation bars
+        systemUiController.isSystemBarsVisible = false // Status & Navigation bars
     }
 
     MaterialTheme(

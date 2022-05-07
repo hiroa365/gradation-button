@@ -40,19 +40,20 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-//        val SDK_INT = android.os.Build.VERSION.SDK_INT
-//        if (SDK_INT >= 30) {
-//            window.insetsController?.hide(
-//                WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars()
-//            )
-//            window.insetsController?.systemBarsBehavior =
-//                WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-//        } else if (SDK_INT >= 19) {
-//            val decorView = window.decorView
-//            decorView.systemUiVisibility =
-//                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
-//                        View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-//        }
+
+        val SDK_INT = android.os.Build.VERSION.SDK_INT
+        if (SDK_INT >= 30) {
+            window.insetsController?.hide(
+                WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars()
+            )
+            window.insetsController?.systemBarsBehavior =
+                WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        } else if (SDK_INT >= 19) {
+            val decorView = window.decorView
+            decorView.systemUiVisibility =
+                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
+                        View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+        }
     }
 }
 
