@@ -30,6 +30,8 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.hiroa365.gradation_button_sample.R
 import io.github.hiroa365.gradation_button_sample.data.repository.GradationColorRepositoryImpl
+import io.github.hiroa365.gradation_button_sample.data.repository.SettingsRepository
+import io.github.hiroa365.gradation_button_sample.data.repository.SettingsRepositoryImpl
 import io.github.hiroa365.gradation_button_sample.domain.usecase.CreateBrushUseCase
 import io.github.hiroa365.gradation_button_sample.domain.usecase.CreateBrushUseCaseImpl
 import io.github.hiroa365.gradation_button_sample.domain.usecase.SpeechNumber
@@ -277,21 +279,17 @@ fun Modifier.noRippleClickable(
     )
 }
 
-object Config {
-    const val cellWidth: Int = 4
-    const val cellHeight: Int = 5
-
-    const val cellNumber = cellWidth * cellHeight
-}
-
 @HiltViewModel
 class MainScreenViewModel @Inject constructor(
     private val createBrushUseCase: CreateBrushUseCase,
     private val speechNumber: SpeechNumber,
+    private val settingRepository: SettingsRepository,
 ) : ViewModel() {
 
+    private val settings = settingRepository.get()
+
     private val initButtonList
-        get() = MutableList<ButtonStyle>(Config.cellNumber) {
+        get() = MutableList<ButtonStyle>(settings.cellNumber) {
             ButtonStyle(
                 brush = createBrushUseCase(),
                 counter = it + 1,
@@ -301,8 +299,8 @@ class MainScreenViewModel @Inject constructor(
     private val initValue
         get() = MainScreenState(
             buttonList = initButtonList,
-            cellHeight = Config.cellHeight,
-            cellWidth = Config.cellWidth,
+            cellHeight = settings.cellHeight,
+            cellWidth = settings.cellWidth,
             openRetryDialog = false,
         )
 
@@ -396,8 +394,9 @@ data class ButtonStyle(
 @Preview
 @Composable
 fun MainScreenPreview() {
+    val settingRepository = SettingsRepositoryImpl()
     MainScreen(
-        buttonList = MutableList<ButtonStyle>(Config.cellNumber) {
+        buttonList = MutableList<ButtonStyle>(settingRepository.get().cellNumber) {
             ButtonStyle(
                 brush = CreateBrushUseCaseImpl(GradationColorRepositoryImpl()).invoke(),
                 counter = it + 1,
