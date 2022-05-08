@@ -10,6 +10,8 @@ import androidx.compose.foundation.lazy.GridCells
 import androidx.compose.foundation.lazy.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,7 +28,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.hiroa365.gradation_button_sample.R
 import io.github.hiroa365.gradation_button_sample.data.repository.GradationColorRepositoryImpl
@@ -49,6 +50,7 @@ private val TAG = "MainScreen"
 @Composable
 fun MainScreen(
     viewModel: MainScreenViewModel = hiltViewModel(),
+    navigateToSettings: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -60,6 +62,7 @@ fun MainScreen(
             buttonList = state.buttonList,
             onClickPush = { viewModel.onClickPushNumber(it) },
             onClickRetry = { viewModel.showRetryDialog() },
+            onClickSettings = { navigateToSettings() },
             cellWidth = state.cellWidth,
             cellHeight = state.cellHeight,
         )
@@ -140,12 +143,16 @@ fun MainScreen(
     buttonList: List<ButtonStyle>,
     onClickPush: (Long) -> Unit = {},
     onClickRetry: () -> Unit = {},
+    onClickSettings: () -> Unit = {},
     cellWidth: Int,
     cellHeight: Int,
 ) {
     Scaffold(
         topBar = {
-            MainTopBar(onClickRetry = onClickRetry)
+            MainTopBar(
+                onClickRetry = onClickRetry,
+                onClickSettings = onClickSettings
+            )
         },
         content = {
             MainScreenContent(buttonList, onClickPush, cellWidth, cellHeight)
@@ -214,6 +221,7 @@ fun MultiButton(
 @Composable
 fun MainTopBar(
     onClickRetry: () -> Unit,
+    onClickSettings: () -> Unit = {},
 ) {
     TopAppBar(
         title = {},
@@ -223,10 +231,10 @@ fun MainTopBar(
 //            }
         },
         actions = {
-//            //設定
-//            IconButton(onClick = { /*TODO*/ }) {
-//                Icon(imageVector = Icons.Default.Settings, contentDescription = "")
-//            }
+            //設定
+            IconButton(onClick = { onClickSettings() }) {
+                Icon(imageVector = Icons.Default.Settings, contentDescription = "")
+            }
             //リトライ
             IconButton(onClick = { onClickRetry() }) {
                 Icon(painterResource(id = R.drawable.ic_baseline_replay_24), "Hint")

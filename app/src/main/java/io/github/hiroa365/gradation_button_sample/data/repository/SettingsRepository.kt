@@ -34,7 +34,7 @@ data class Settings(
     /**
      * セルの横の数
      */
-    val cellWidth: Int = 4,
+    val cellWidth: Int = 5,
     /**
      * セルの縦の数
      */

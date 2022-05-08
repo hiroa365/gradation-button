@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.hiroa365.gradation_button_sample.screen.MainScreen
+import io.github.hiroa365.gradation_button_sample.screen.navigation.AppNavHost
 import io.github.hiroa365.gradation_button_sample.ui.theme.GradationbuttonsampleTheme
 
 @AndroidEntryPoint
@@ -31,8 +32,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    MainScreen()
-//                    Greeting("Android")
+                    AppNavHost()
                 }
             }
         }
@@ -54,18 +54,5 @@ class MainActivity : ComponentActivity() {
                 View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
                         View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String) {
-    Text(text = "Hello $name!")
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    GradationbuttonsampleTheme {
-        Greeting("Android")
     }
 }
