@@ -359,7 +359,7 @@ class MainScreenViewModel @Inject constructor(
         viewModelScope.launch {
             _state.value = _state.value.copy(
                 toggle = !_state.value.toggle,
-                buttonList = createButtonSetup(settings.cellNumber),
+                buttonList = createButtonSetup(),
                 openRetryDialog = false,
             )
         }
