@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalFoundationApi::class)
+@file:OptIn(ExperimentalFoundationApi::class, ExperimentalFoundationApi::class)
 
 package io.github.hiroa365.gradation_button_sample.screen
 
@@ -16,7 +16,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -30,16 +29,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.hiroa365.gradation_button_sample.R
-import io.github.hiroa365.gradation_button_sample.data.repository.GradationColorRepositoryImpl
-import io.github.hiroa365.gradation_button_sample.data.repository.SettingsRepository
-import io.github.hiroa365.gradation_button_sample.data.repository.SettingsRepositoryImpl
+import io.github.hiroa365.gradation_button_sample.data.repository.*
+import io.github.hiroa365.gradation_button_sample.domain.usecase.CreateButtonSetup
 import io.github.hiroa365.gradation_button_sample.domain.usecase.CreateBrushUseCase
 import io.github.hiroa365.gradation_button_sample.domain.usecase.CreateBrushUseCaseImpl
 import io.github.hiroa365.gradation_button_sample.domain.usecase.SpeechNumber
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import java.util.*
 import javax.inject.Inject
 
 private val TAG = "MainScreen"
@@ -71,7 +67,6 @@ fun MainScreen(
             RetryAlertDialog(
                 onClickConfirm = {
                     viewModel.resetButtonNumber()
-                    viewModel.hideRetryDialog()
                 },
                 onClickDismiss = {
                     viewModel.hideRetryDialog()
@@ -290,23 +285,20 @@ fun Modifier.noRippleClickable(
 @HiltViewModel
 class MainScreenViewModel @Inject constructor(
     private val createBrushUseCase: CreateBrushUseCase,
+    private val createButtonSetup: CreateButtonSetup,
     private val speechNumber: SpeechNumber,
     private val settingRepository: SettingsRepository,
+    private val buttonSetupRepository: ButtonSetupRepository,
 ) : ViewModel() {
 
     private val settings = settingRepository.get()
 
-    private val initButtonList
-        get() = MutableList<ButtonStyle>(settings.cellNumber) {
-            ButtonStyle(
-                brush = createBrushUseCase(),
-                counter = it + 1,
-            )
-        }.apply { shuffle() }
-
+    /**
+     * 初期値を作成
+     */
     private val initValue
         get() = MainScreenState(
-            buttonList = initButtonList,
+            buttonList = buttonSetupRepository.get(),
             cellHeight = settings.cellHeight,
             cellWidth = settings.cellWidth,
             openRetryDialog = false,
@@ -364,10 +356,13 @@ class MainScreenViewModel @Inject constructor(
      * ボタン番号のリセット
      */
     fun resetButtonNumber() {
-        _state.value = _state.value.copy(
-            toggle = !_state.value.toggle,
-            buttonList = initButtonList,
-        )
+        viewModelScope.launch {
+            _state.value = _state.value.copy(
+                toggle = !_state.value.toggle,
+                buttonList = createButtonSetup(settings.cellNumber),
+                openRetryDialog = false,
+            )
+        }
     }
 
     /**
@@ -390,12 +385,6 @@ data class MainScreenState(
     val cellWidth: Int,
     val cellHeight: Int,
     val openRetryDialog: Boolean,
-)
-
-data class ButtonStyle(
-    val id: Long = UUID.randomUUID().mostSignificantBits,
-    val counter: Int,
-    val brush: Brush,
 )
 
 
