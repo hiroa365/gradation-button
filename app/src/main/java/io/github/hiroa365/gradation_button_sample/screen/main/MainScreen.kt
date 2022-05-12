@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalFoundationApi::class, ExperimentalFoundationApi::class)
 
-package io.github.hiroa365.gradation_button_sample.screen
+package io.github.hiroa365.gradation_button_sample.screen.main
 
 import android.util.Log
 import androidx.compose.foundation.*
@@ -25,23 +25,14 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.hiroa365.gradation_button_sample.R
 import io.github.hiroa365.gradation_button_sample.data.repository.*
-import io.github.hiroa365.gradation_button_sample.domain.usecase.CreateButtonSetup
-import io.github.hiroa365.gradation_button_sample.domain.usecase.CreateBrushUseCase
 import io.github.hiroa365.gradation_button_sample.domain.usecase.CreateBrushUseCaseImpl
-import io.github.hiroa365.gradation_button_sample.domain.usecase.SpeechNumber
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 private val TAG = "MainScreen"
 
 /**
- * statefull
+ * state full
  */
 @Composable
 fun MainScreen(
@@ -50,6 +41,8 @@ fun MainScreen(
 ) {
     val state by viewModel.state.collectAsState()
 
+    //ボタンが未初期化の場合は初期化する
+    state.buttonList.ifEmpty { viewModel.resetButtonNumber() }
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -152,10 +145,6 @@ fun MainScreen(
         content = {
             MainScreenContent(buttonList, onClickPush, cellWidth, cellHeight)
         },
-        bottomBar = {
-            //ボトムバーはコンテンツが裏に隠れるので止める
-            //MainBottomBar()
-        },
     )
 }
 
@@ -172,7 +161,7 @@ fun MainScreenContent(
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize(),
     ) {
-        val screenWidth = with(LocalDensity.current) { constraints.maxWidth.toDp() }
+//        val screenWidth = with(LocalDensity.current) { constraints.maxWidth.toDp() }
         val screenHeight = with(LocalDensity.current) { constraints.maxHeight.toDp() }
 
         LazyVerticalGrid(
@@ -221,9 +210,6 @@ fun MainTopBar(
     TopAppBar(
         title = {},
         navigationIcon = {
-//            IconButton(onClick = { /*TODO*/ }) {
-//                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "")
-//            }
         },
         actions = {
             //設定
@@ -234,33 +220,10 @@ fun MainTopBar(
             IconButton(onClick = { onClickRetry() }) {
                 Icon(painterResource(id = R.drawable.ic_baseline_replay_24), "Hint")
             }
-//            //ヘルプ
-//            IconButton(onClick = { /*TODO*/ }) {
-//                Icon(painterResource(id = R.drawable.ic_baseline_help_24), "Hint")
-//            }
         },
         backgroundColor = Color.White,
     )
 }
-
-
-//@Composable
-//fun MainBottomBar() {
-//    BottomAppBar(
-////            modifier = Modifier.height(56.dp),
-//        backgroundColor = Color.White,
-//    ) {
-//        IconButton(onClick = { /*TODO*/ }) {
-//            Icon(imageVector = Icons.Default.Settings, contentDescription = "")
-//        }
-//        IconButton(onClick = { /*TODO*/ }) {
-//            Icon(imageVector = Icons.Default.Settings, contentDescription = "")
-//        }
-//        IconButton(onClick = { /*TODO*/ }) {
-//            Icon(imageVector = Icons.Default.Settings, contentDescription = "")
-//        }
-//    }
-//}
 
 /**
  * Ripple無し clickable
@@ -281,111 +244,6 @@ fun Modifier.noRippleClickable(
         interactionSource = remember { MutableInteractionSource() }
     )
 }
-
-@HiltViewModel
-class MainScreenViewModel @Inject constructor(
-    private val createBrushUseCase: CreateBrushUseCase,
-    private val createButtonSetup: CreateButtonSetup,
-    private val speechNumber: SpeechNumber,
-    private val settingRepository: SettingsRepository,
-    private val buttonSetupRepository: ButtonSetupRepository,
-) : ViewModel() {
-
-    private val settings = settingRepository.get()
-
-    /**
-     * 初期値を作成
-     */
-    private val initValue
-        get() = MainScreenState(
-            buttonList = buttonSetupRepository.get(),
-            cellHeight = settings.cellHeight,
-            cellWidth = settings.cellWidth,
-            openRetryDialog = false,
-        )
-
-    /**
-     * StateはStateFlowで保持
-     */
-    private val _state = MutableStateFlow(initValue)
-    val state = _state.asStateFlow()
-
-    /**
-     * ボタン押下
-     */
-    fun onClickPushNumber(id: Long) {
-        viewModelScope.launch {
-            //ボタンインデックスの抽出
-            val index = _state.value.buttonList.indexOfFirst { it.id == id }
-            //古いスタイルの取得
-            val oldStyle = _state.value.buttonList[index]
-
-            speechNumber(oldStyle.counter.toString())
-
-            //最小ボタンのチェック
-            val minStyle = _state.value.buttonList.minByOrNull { it.counter }
-            if (oldStyle.counter != minStyle?.counter) return@launch
-
-            //最大カウンターの取得
-            val style = _state.value.buttonList.maxByOrNull { it.counter }
-            val maxCounter = style?.counter ?: oldStyle.counter
-
-            //スタイルの更新
-            _state.value.buttonList[index] =
-                oldStyle.copy(brush = createBrushUseCase(), counter = maxCounter + 1)
-
-            _state.value = _state.value.copy(toggle = !_state.value.toggle)
-        }
-    }
-
-    /**
-     * リトライダイアログ表示
-     */
-    fun showRetryDialog() {
-        _state.value = _state.value.copy(openRetryDialog = true)
-    }
-
-    /**
-     * リトライダイアログ消去
-     */
-    fun hideRetryDialog() {
-        _state.value = _state.value.copy(openRetryDialog = false)
-    }
-
-    /**
-     * ボタン番号のリセット
-     */
-    fun resetButtonNumber() {
-        viewModelScope.launch {
-            _state.value = _state.value.copy(
-                toggle = !_state.value.toggle,
-                buttonList = createButtonSetup(),
-                openRetryDialog = false,
-            )
-        }
-    }
-
-    /**
-     * ボタンカラー変更
-     */
-
-    /**
-     * 音を出す
-     */
-
-    /**
-     * 消える
-     */
-
-}
-
-data class MainScreenState(
-    val toggle: Boolean = true,
-    val buttonList: MutableList<ButtonStyle>,
-    val cellWidth: Int,
-    val cellHeight: Int,
-    val openRetryDialog: Boolean,
-)
 
 
 @Preview

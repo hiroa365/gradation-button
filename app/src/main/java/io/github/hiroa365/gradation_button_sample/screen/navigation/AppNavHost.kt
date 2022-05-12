@@ -5,8 +5,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import io.github.hiroa365.gradation_button_sample.screen.MainScreen
-import io.github.hiroa365.gradation_button_sample.screen.SettingsScreen
+import io.github.hiroa365.gradation_button_sample.screen.main.MainScreen
+import io.github.hiroa365.gradation_button_sample.screen.settings.SettingsScreen
 
 @Composable
 fun AppNavHost(

@@ -1,4 +1,4 @@
-package io.github.hiroa365.gradation_button_sample.screen
+package io.github.hiroa365.gradation_button_sample.screen.settings
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.selectable
@@ -125,65 +125,6 @@ fun SettingsScreen(
     }
 }
 
-
-@HiltViewModel
-class SettingsScreenViewModel @Inject constructor(
-    private val createButtonSetup: CreateButtonSetup,
-    private val settingRepository: SettingsRepository,
-) : ViewModel() {
-
-//    private var settings = settingRepository.get()
-
-    private val initValue: SettingsScreenState = SettingsScreenState(
-        selectedOption = CellsNumber.find(
-            width = settingRepository.get().cellWidth,
-            height = settingRepository.get().cellHeight
-        )
-    )
-
-    private val _state = MutableStateFlow(initValue)
-    val state = _state.asStateFlow()
-
-
-    fun onOptionSelected(value: CellsNumber) {
-        viewModelScope.launch {
-            _state.value = _state.value.copy(selectedOption = value)
-            //データ更新
-            settingRepository.setCells(height = value.height, width = value.width)
-            //ボタン情報を再作成
-            createButtonSetup()
-        }
-    }
-}
-
-
-data class SettingsScreenState(
-    val cellsOptions: List<CellsNumber> = listOf(
-        CellsNumber9,
-        CellsNumber16,
-        CellsNumber25
-    ),
-    val selectedOption: CellsNumber
-)
-
-sealed class CellsNumber(val height: Int, val width: Int) {
-    override fun toString(): String = "$height × $width"
-
-    companion object {
-        fun find(height: Int, width: Int): CellsNumber {
-            return when (height to width) {
-                3 to 3 -> CellsNumber9
-                4 to 4 -> CellsNumber16
-                5 to 5 -> CellsNumber25
-                else -> CellsNumber16
-            }
-        }
-    }
-}
-
-object CellsNumber9 : CellsNumber(3, 3)
-object CellsNumber16 : CellsNumber(4, 4)
-object CellsNumber25 : CellsNumber(5, 5)
 
 
 @Preview

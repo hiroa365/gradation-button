@@ -9,12 +9,8 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import dagger.hilt.android.AndroidEntryPoint
-import io.github.hiroa365.gradation_button_sample.screen.MainScreen
 import io.github.hiroa365.gradation_button_sample.screen.navigation.AppNavHost
 import io.github.hiroa365.gradation_button_sample.ui.theme.GradationbuttonsampleTheme
 
