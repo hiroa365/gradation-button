@@ -10,8 +10,7 @@
 
 # Screenshots
 
-<img alt="demo" src="https://github.com/hiroa365/gradation-button-sample/blob/main/screenshot/1.gif" width="320">
-
+<img alt="demo" src="https://github.com/hiroa365/gradation-button-sample/blob/main/screenshot/1_.gif" width="320">
 
 
 # Tech Stack & Open-source libraries
